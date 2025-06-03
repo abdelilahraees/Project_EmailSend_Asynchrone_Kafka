@@ -1,0 +1,30 @@
+package com.example.demo.consumer;
+
+import com.example.demo.dto.EmailEvent;
+import com.example.demo.service.EmailService;
+import org.springframework.kafka.annotation.KafkaListener;
+import org.springframework.stereotype.Component;
+
+@Component
+public class EmailConsumer {
+
+    private final EmailService emailService;
+
+    public EmailConsumer(EmailService emailService) {
+        this.emailService = emailService;
+    }
+
+    @KafkaListener(topics = "${app.kafka.email-topic}")
+    public void consumeEmailEvent(EmailEvent emailEvent) {
+        try {
+            emailService.sendSimpleEmail(
+                    emailEvent.getTo(),
+                    emailEvent.getSubject(),
+                    emailEvent.getText()
+            );
+        } catch (Exception e) {
+            // Log l'erreur et/ou implémenter un système de retry
+            System.err.println("Failed to process email event: " + e.getMessage());
+        }
+    }
+}
